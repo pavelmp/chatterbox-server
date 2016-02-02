@@ -12,7 +12,9 @@ this file and include it in basic-server.js so that it actually works.
 
 **************************************************************/
 
-var requestHandler = function(request, response) {
+global.fakeData = {results: [{createdAt:"2016-02-01T22:59:01.041Z",objectId:"xcOIruxV1W",opponents:{__type:"Relation",className:"Player"},roomname:"4chan",text:"Welcome to our chatterbox!",updatedAt:"2016-02-01T22:59:01.041Z",username:"Jackie"}]};
+
+exports.requestHandler = function(request, response) {
   // Request and Response come from node's http module.
   //
   // They include information about both the incoming request, such as
@@ -29,21 +31,62 @@ var requestHandler = function(request, response) {
   // console.logs in your code.
   console.log("Serving request type " + request.method + " for url " + request.url);
 
-  // The outgoing status.
+  var arr = fakeData.results;
+  var headers = defaultCorsHeaders;
+  headers['Content-Type'] = "application/json";
   var statusCode = 200;
 
-  // See the note below about CORS headers.
-  var headers = defaultCorsHeaders;
+  arr.sort(function(a,b){
+    return Date.parse(b.createdAt)-Date.parse(a.createdAt);
+  });
+  fakeData.results = arr;
 
-  // Tell the client we are sending them plain text.
-  //
-  // You will need to change this if you are sending something
-  // other than plain text, like JSON or HTML.
-  headers['Content-Type'] = "text/plain";
+  if (request.method == 'POST') {
+    statusCode = 201;
+    console.log('URL IS ---> ',request.url);
+
+    var body = '';
+    request.on('data', function(data){
+      body += data;
+      var bodyParse = JSON.parse(body);
+      console.log('Before update: ',JSON.stringify(bodyParse));
+      bodyParse.roomname = bodyParse.roomname || 'lobby';
+      bodyParse.createdAt = new Date().toISOString();
+      bodyParse.updatedAt = bodyParse.createdAt;
+      bodyParse.objectId = 'jackieIDno' + Math.random().toString();
+      bodyParse.opponents = {__type:"Relation",className:"Player"};
+      console.log('After update: ',JSON.stringify(bodyParse));
+      fakeData.results.push(bodyParse);
+      response.writeHead(statusCode, headers);
+      response.end();
+    });
+  }
+
+  if (request.method == 'GET') {
+    if(request.url !== '/classes/messages'){
+      console.log('in error');
+      statusCode = 404;
+      response.writeHead(statusCode, headers);
+      response.end();
+    }
+    
+    statusCode = 200;
+    response.writeHead(statusCode, headers);
+    response.end(JSON.stringify(global.fakeData));
+  }
+
+  // The outgoing status.
+  //var statusCode = 200;
+
+  // See the note below about CORS headers.
+  //var headers = defaultCorsHeaders;
+
+  //headers['Content-Type'] = "application/json";
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
-  response.writeHead(statusCode, headers);
+  //response.writeHead(statusCode, headers);
+  //response.write(fakeData);
 
   // Make sure to always call response.end() - Node may not send
   // anything back to the client until you do. The string you pass to
@@ -52,7 +95,12 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end("Hello, World!");
+  // var arr = fakeData.results;
+  // arr.sort(function(a,b){
+  //   return Date.parse(b.createdAt)-Date.parse(a.createdAt);
+  // });
+  // fakeData.results = arr;
+  //response.end(JSON.stringify(global.fakeData));
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
