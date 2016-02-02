@@ -40,7 +40,6 @@ var app = {
     app.startSpinner();
     // Clear messages input
     app.$message.val('');
-
     // POST the message to the server
     $.ajax({
       url: app.server,
@@ -61,10 +60,9 @@ var app = {
     $.ajax({
       url: app.server,
       type: 'GET',
-      //contentType: 'application/json',
+        contentType: 'application/json',
       //data: { order: '-createdAt'},
       success: function(data) {
-        console.log('in fetching');
         // Don't bother if we have nothing to work with
         if (!data.results || !data.results.length) { 
           return; 
@@ -75,9 +73,6 @@ var app = {
         var displayedRoom = $('.chat span').first().data('roomname');
         app.stopSpinner();
         // Only bother updating the DOM if we have a new message
-
-        console.log(app.roomname, displayedRoom);
-        console.log(Boolean(mostRecentMessage.objectId !== app.lastMessageId), ' or?! ', app.roomname !== displayedRoom);
 
         //if (mostRecentMessage.objectId !== app.lastMessageId || app.roomname !== displayedRoom) {
           // Update the UI with the fetched rooms

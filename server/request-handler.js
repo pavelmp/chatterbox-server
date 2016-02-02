@@ -31,11 +31,12 @@ exports.requestHandler = function(request, response) {
   // console.logs in your code.
   console.log("Serving request type " + request.method + " for url " + request.url);
 
-  var arr = fakeData.results;
   var headers = defaultCorsHeaders;
   headers['Content-Type'] = "application/json";
   var statusCode = 200;
 
+  
+  var arr = fakeData.results;
   arr.sort(function(a,b){
     return Date.parse(b.createdAt)-Date.parse(a.createdAt);
   });
@@ -49,13 +50,13 @@ exports.requestHandler = function(request, response) {
     request.on('data', function(data){
       body += data;
       var bodyParse = JSON.parse(body);
-      console.log('Before update: ',JSON.stringify(bodyParse));
+
       bodyParse.roomname = bodyParse.roomname || 'lobby';
       bodyParse.createdAt = new Date().toISOString();
       bodyParse.updatedAt = bodyParse.createdAt;
       bodyParse.objectId = 'jackieIDno' + Math.random().toString();
       bodyParse.opponents = {__type:"Relation",className:"Player"};
-      console.log('After update: ',JSON.stringify(bodyParse));
+
       fakeData.results.push(bodyParse);
       response.writeHead(statusCode, headers);
       response.end();
@@ -69,11 +70,15 @@ exports.requestHandler = function(request, response) {
       response.writeHead(statusCode, headers);
       response.end();
     }
-    
+
     statusCode = 200;
     response.writeHead(statusCode, headers);
     response.end(JSON.stringify(global.fakeData));
   }
+
+
+  response.writeHead(statusCode, headers);
+  response.end(JSON.stringify(global.fakeData));
 
   // The outgoing status.
   //var statusCode = 200;
